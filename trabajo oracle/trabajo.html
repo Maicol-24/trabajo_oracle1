@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Agenda sencilla</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <main>
+    <h1>Mi agenda</h1>
+    <form id="formulario">
+      <input id="tarea" placeholder="Escribe una tarea" required>
+      <button type="submit">Agregar</button>
+    </form>
+    <ul id="lista"></ul>
+  </main>
+
+  <script>
+    const formulario = document.getElementById("formulario");
+    const tarea = document.getElementById("tarea");
+    const lista = document.getElementById("lista");
+
+    async function cargarTareas() {
+      const respuesta = await fetch("/api/tareas");
+      const tareas = await respuesta.json();
+      lista.innerHTML = "";
+      tareas.forEach((item) => {
+        const li = document.createElement("li");
+        li.innerHTML = `<span></span><button class="eliminar">Eliminar</button>`;
+        li.querySelector("span").textContent = item.texto;
+        li.querySelector("button").onclick = () => eliminarTarea(item.id);
+        lista.appendChild(li);
+      });
+    }
+
+    formulario.addEventListener("submit", async (evento) => {
+      evento.preventDefault();
+      await fetch("/api/tareas", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ texto: tarea.value })
+      });
+      tarea.value = "";
+      cargarTareas();
+    });
+
+    async function eliminarTarea(id) {
+      await fetch(`/api/tareas/${id}`, { method: "DELETE" });
+      cargarTareas();
+    }
+
+    cargarTareas();
+  </script>
+</body>
+</html>
